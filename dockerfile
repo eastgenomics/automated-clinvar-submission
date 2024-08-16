@@ -65,15 +65,7 @@ COPY env_file.txt /env_file.txt
 COPY configurations/configuration_test.txt /configuration.txt
 
 # copy the main.nf file to the container
-COPY main.nf /main.nf
-
-# #Mkdir for the output
-# RUN mkdir -p /test_submission/Output
-# RUN mkdir -p /test_submission/completed_dir
-# RUN mkdir -p /test_submission/failed_dir
-# RUN touch /test_submission/workbooks_parsed_all_variants.txt
-# RUN touch /test_submission/workbooks_parsed_clinvar_variants.txt
-# RUN touch /test_submission/workbooks_fail_to_parse.txt
+COPY ./ /home/
 
 # Set environment variables from env_file.txt
 ENV $(cat /env_file.txt | xargs)
