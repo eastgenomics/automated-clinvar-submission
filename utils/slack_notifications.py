@@ -59,16 +59,62 @@ def parse_args():
 
 
 def read_log_file(file_path):
+    """
+    Read log file and return lines.
+
+    Parameters
+    ----------
+    file_path : str
+        The path to the log file.
+
+    Returns
+    -------
+    list
+        List of lines in the log file.
+    """
     with open(file_path, 'r') as file:
         return file.readlines()
 
 
 def filter_by_today(log_lines):
+    """
+    Filter log lines by today's date.
+
+    Parameters
+    ----------
+    log_lines : list
+        logfile lines imported from the log file
+
+    Returns
+    -------
+    list
+        List of log lines that start with today's date.
+    """
     today = datetime.now().strftime("%d/%m/%Y")
     return [line for line in log_lines if line.startswith(today)]
 
 
 def count_metrics(fail_lines, pass_lines):
+    """
+    Count the total number of workbooks parsed, passed, and failed.
+
+    Parameters
+    ----------
+    fail_lines : list
+        logfile lines imported from the fail log file
+
+    pass_lines : list
+        logfile lines imported from the pass log file
+
+    Returns
+    -------
+    total_wb_parsed : int
+        The total number of workbooks parsed.
+    total_wb_passed : int
+        The total number of workbooks that passed.
+    total_wb_failed : int
+        The total number of workbooks that failed.
+    """
     total_wb_failed = len(fail_lines)
     total_wb_passed = len(pass_lines)
     total_wb_parsed = total_wb_failed + total_wb_passed
@@ -77,6 +123,25 @@ def count_metrics(fail_lines, pass_lines):
 
 def collate_wb_info(fail_log_path: str = 'workbooks_fail_to_parse.txt',
                     pass_log_path: str = 'workbooks_parsed_all_variants.txt'):
+    """
+    Collates workbook information and returns the total parsed, total passed, and total failed metrics.
+
+    Parameters
+    ----------
+    fail_log_path : str, optional, by default 'workbooks_fail_to_parse.txt'
+        The file path to the log file containing the workbooks that failed to parse. Default is 'workbooks_fail_to_parse.txt'.
+    pass_log_path : str, optional, by default 'workbooks_parsed_all_variants.txt'
+        The file path to the log file containing the workbooks that parsed all variants. Default is 'workbooks_parsed_all_variants.txt'.
+
+    Returns
+    -------
+    total_parsed : int
+        The total number of workbooks parsed.
+    total_passed : int
+        The total number of workbooks that passed.
+    total_failed : int
+        The total number of workbooks that failed.
+    """
 
     fail_log_lines = read_log_file(fail_log_path)
     pass_log_lines = read_log_file(pass_log_path)
@@ -163,6 +228,9 @@ def coordinate_notifications(parsed_args, outcome):
         None
     Raises:
         None
+    Outputs:
+        Generates slack notification based on the outcome of the job.
+        Using the Slack API.
     """
     total_parsed, total_passed, total_failed = collate_wb_info(
         parsed_args.fail_log_path, parsed_args.pass_log_path
@@ -199,23 +267,21 @@ def coordinate_notifications(parsed_args, outcome):
     else:
         log.error("Invalid outcome provided for slack notification")
         message = (
-            f"Error with Workbook parsing invalid outcome.\n"
-            f"Please check run.\n"
-            f":black_small_square: {total_parsed} workbooks parsed\n"
-            f":black_small_square: {total_passed} passed\n"
-            f":black_small_square: {total_failed} failed\n"
+            f"Error with Workbook parsing invalid outcome.\n",
+            "Please check run.\n",
+            "Please check logs for more information."
         )
-        # slack_notify(parsed_args.channel, message, 'fail', SLACK_TOKEN)
-    # if total_failed > 0:
-    #     slack_notify(parsed_args.channel, message, 'fail', SLACK_TOKEN)
-    # elif total_parsed == total_passed:
-    #     slack_notify(parsed_args.channel, message, 'success', SLACK_TOKEN)
-    # else:
-    #     log.error("Invalid state to send slack notification")
+        slack_notify(parsed_args.channel, message, 'fail', SLACK_TOKEN)
 
 
 def main():
+    """
+    Main function to run the script.
+    """
     parsed_args = parse_args()
+    if parsed_args.testing:
+        log.info("Running in testing mode")
+        parsed_args.channel = 'egg-test'
     coordinate_notifications(parsed_args, parsed_args.outcome)
 
 
