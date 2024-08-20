@@ -11,6 +11,7 @@ import sys
 from urllib3.util import Retry
 import argparse
 from dotenv import load_dotenv
+import json
 
 log = logging.getLogger("monitor log")
 log.setLevel(logging.DEBUG)
@@ -23,7 +24,7 @@ log_format.setFormatter(
 )
 load_dotenv()
 SLACK_TOKEN = os.getenv('SLACK_TOKEN')
-
+SLACK_WEBHOOK_URL = os.getenv('SLACK_WEBHOOK_URL')
 
 def parse_args():
     """
@@ -154,17 +155,6 @@ def collate_wb_info(fail_log_path: str = 'workbooks_fail_to_parse.txt',
 
     return total_parsed, total_passed, total_failed
 
-
-def test_notify(total_parsed, total_passed, total_failed):
-    """
-    Test function to test slack_notify function
-    """
-    print("Testing slack_notify function\n")
-    print(f"total_parsed: {total_parsed}\n",
-          f"total_passed: {total_passed}\n",
-          f"total_failed: {total_failed}\n")
-
-
 def slack_notify(channel, message, outcome, slack_token) -> None:
     """
     Send notification to given Slack channel
@@ -184,7 +174,7 @@ def slack_notify(channel, message, outcome, slack_token) -> None:
     slack_token = os.environ.get('SLACK_TOKEN')
 
     http = Session()
-    retries = Retry(total=5, backoff_factor=10, method_whitelist=['POST'])
+    retries = Retry(total=5, backoff_factor=10, allowed_methods=['POST'])
     http.mount("https://", HTTPAdapter(max_retries=retries))
     if outcome == 'success':
         message = f":white_check_mark: {message}"
@@ -217,6 +207,46 @@ def slack_notify(channel, message, outcome, slack_token) -> None:
             f"Error in sending post request for slack notification: {err}"
         )
 
+def slack_notify_webhook(channel, message, outcome, webhook_url) -> None:
+    """
+    Send notification to given Slack channel using a webhook
+
+    Parameters
+    ----------
+    webhook_url : str
+        Webhook URL to send message to.
+    message : str
+        Message to send to Slack.
+    outcome : str
+        "success" or "fail" to determine message color.
+    """
+    log.info("Sending message to Slack via webhook")
+    print(channel)
+    http = Session()
+    retries = Retry(total=5, backoff_factor=10, allowed_methods=['POST'])
+    http.mount("https://", HTTPAdapter(max_retries=retries))
+    print(outcome)
+    if outcome == 'success':
+        message = f":white_check_mark: {message}"
+    elif outcome == 'fail':
+        message = f":warning: {message}"
+    else:
+        log.error(f"Invalid outcome {outcome} provided for slack notification")
+        return
+
+    payload = {
+        "text": message
+    }
+    try:
+        response = http.post(webhook_url, data=json.dumps(payload), headers={'Content-Type': 'application/json'})
+        response.raise_for_status()  # Raise an exception for HTTP errors
+
+        if response.status_code != 200:
+            log.error(f"Error in sending slack notification: {response.text}")
+        else:
+            log.info("Successfully sent slack notification")
+    except Exception as err:
+        log.error(f"Error in sending post request for slack notification: {err}")
 
 def coordinate_notifications(parsed_args, outcome):
     """
@@ -235,43 +265,51 @@ def coordinate_notifications(parsed_args, outcome):
     total_parsed, total_passed, total_failed = collate_wb_info(
         parsed_args.fail_log_path, parsed_args.pass_log_path
     )
-    test_notify(total_parsed, total_passed, total_failed)
+    print(f"total_parsed: {total_parsed}, total_passed: {total_passed}, total_failed: {total_failed}")
+
+    if parsed_args.testing:
+        script_name = ':mailbox:automated-workbook-parsing - Testing :test_tube:'
+    else:
+        script_name = ':mailbox:automated-workbook-parsing'
     # Logic to handle different messages
     if outcome == 'success':
         if total_failed > 0:
             message = (
-                f"Automated parsing of sucessfully run."
+                f"{script_name}\n"
+                f"Automated parsing of sucessfully run.\n"
                 f":black_small_square: {total_parsed} workbooks parsed\n"
                 f":black_small_square: {total_passed} passed\n"
                 f":black_small_square: {total_failed} failed\n"
             )
-            slack_notify(parsed_args.channel, message, 'success', SLACK_TOKEN)
+            slack_notify_webhook(parsed_args.channel, message, 'success', SLACK_WEBHOOK_URL)
         elif total_parsed == total_passed:
             message = (
-                f"Automated parsing of sucessfully run."
+                f"{script_name}\n"
+                f"Automated parsing of sucessfully run.\n"
                 f":black_small_square: {total_parsed} workbooks parsed\n"
                 f":black_small_square: {total_passed} passed\n"
                 f":black_small_square: {total_failed} failed\n"
             )
-            slack_notify(parsed_args.channel, message, 'success', SLACK_TOKEN)
+            slack_notify_webhook(parsed_args.channel, message, 'success', SLACK_WEBHOOK_URL)
         else:
             log.error("Invalid state to send slack notification")
-        slack_notify(parsed_args.channel, message, 'success', SLACK_TOKEN)
+            slack_notify_webhook(parsed_args.channel, message, 'success', SLACK_WEBHOOK_URL)
     elif outcome == 'fail':
         message = f"Automated parsing of workbooks failed.\n Please check error logs. \n"
         if parsed_args.testing:
             parsed_args.channel = 'egg-test'  # override channel for testing
         else:
             parsed_args.channel = 'egg-test'  # override channel for testing
-        slack_notify(parsed_args.channel, message, 'fail', SLACK_TOKEN)
+        slack_notify_webhook(parsed_args.channel, message, 'fail', SLACK_WEBHOOK_URL)
     else:
         log.error("Invalid outcome provided for slack notification")
         message = (
-            f"Error with Workbook parsing invalid outcome.\n",
-            "Please check run.\n",
-            "Please check logs for more information."
+            f"{script_name}\n"
+            f"Error with Workbook parsing invalid outcome.\n"
+            f"Please check run.\n"
+            f"Please check logs for more information."
         )
-        slack_notify(parsed_args.channel, message, 'fail', SLACK_TOKEN)
+        slack_notify_webhook(parsed_args.channel, message, 'fail', SLACK_WEBHOOK_URL)
 
 
 def main():
