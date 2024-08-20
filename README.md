@@ -5,19 +5,29 @@
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Features](#features)
+    - [Future features](#future-features)
   - [Installation](#installation)
   - [Pre-requirements](#pre-requirements)
   - [Usage](#usage)
-  - [Configuration](#configuration)
-  - [Contributing](#contributing)
-  - [License](#license)
-  - [Contact](#contact)
+      - [Locally](#locally)
+      - [In Docker env](#in-docker-env)
+- [Developed by East Genomics](#developed-by-east-genomics)
 
 ## Introduction
-Provide a brief overview of the project and its purpose.
+This repository contains a Nextflow workflow designed to parse variant workbooks.
+The workflow is configured to run both locally and in a production environment.
+The production environment runs in a docker container ().
+
 
 ## Features
-List the main features of the project.
+- Runs `variant_workbook_parser` from [variant_workbook_parser GitHub repo](https://github.com/eastgenomics/variant_workbook_parser)
+- Raises Slack notifications for logging and alerts
+
+### Future features
+- Automated submission to clinvar and local database
+- Slack notifications for logging clinvar submission and any errors or re-running
+- Re-running for any accesssion ids which require waiting.
+
 
 ## Installation
 Step-by-step instructions on how to install the project.
@@ -30,18 +40,12 @@ List the necessary pre-requirements for the project, including environment token
 - `DNANEXUS_TOKEN`: Your API token for accessing the DNANEXUS API.
 - `SLACK_TOKEN`: API token to access SLACK and send messages to relevant channel.
 
-
 ## Usage
-Instructions on how to use the project.
 
-## Configuration
-Details on how to configure the project.
+#### Locally
+`nextflow run main.nf`
 
-## Contributing
-Guidelines for contributing to the project.
+#### In Docker env
+`nextflow run main.nf`
 
-## License
-Information about the project's license.
-
-## Contact
-Contact information for the project maintainers.
+# Developed by East Genomics
