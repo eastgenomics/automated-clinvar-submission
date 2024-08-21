@@ -5,7 +5,6 @@ nextflow.enable.dsl=2
 // Define parameters with default values or set to null if not provided
 params.indir = '/test_submission'
 params.outdir = '/test_submission/Output/'
-params.file = null
 params.parsed_file_log = '/test_submission/workbooks_parsed_all_variants.txt'
 params.clinvar_file_log = '/test_submission/workbooks_parsed_clinvar_variants.txt'
 params.failed_file_log = '/test_submission/workbooks_fail_to_parse.txt'
@@ -17,6 +16,7 @@ params.subfolder = 'csvs'
 // Retrieve the token from the environment variable DX_TOKEN
 params.token = System.getenv('DX_TOKEN') ?: null
 params.slack_channel = 'egg-test'
+
 
 process parse_workbooks {
     beforeScript 'echo "Starting the workflow"'
@@ -48,8 +48,18 @@ process parse_workbooks {
         if ${cmd} --tk ${params.token}; then
             echo "Success"
             bash /home/report_success.sh ${params.slack_channel} 'message' 'success'
+            python3 /home/utils/slack_notifications.py --m "testing" -c ${params.slack_channel} \
+             -o "T" --fail-log-path /home/rswilson1/Documents/test_parsing/workbooks_fail_to_parse.txt \
+             --pass-log-path /home/rswilson1/Documents/test_parsing/workbooks_parsed_all_variants.txt
+
+            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+             -o "success" --fail-log-path ${params.failed_file_log} \
+             --pass-log-path ${params.parsed_file_log}
         else
             echo "Failure"
+            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+             -o "fail" --fail-log-path ${params.failed_file_log} \
+             --pass-log-path ${params.parsed_file_log}
             bash /home/report_failure.sh ${params.slack_channel} 'message' 'failure'
         fi
         """
@@ -58,9 +68,15 @@ process parse_workbooks {
         cp /variant_workbook_parser/parser_config.json ./parser_config.json
         if ${cmd}; then
             echo "Success"
+            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+             -o "success" --fail-log-path ${params.failed_file_log} \
+             --pass-log-path ${params.parsed_file_log}
             bash /home/report_success.sh ${params.slack_channel} 'message' 'success'
         else
             echo "Failure"
+            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+             -o "fail" --fail-log-path ${params.failed_file_log} \
+             --pass-log-path ${params.parsed_file_log}
             bash /home/report_failure.sh ${params.slack_channel} 'message' 'failure'
         fi
         """
@@ -70,4 +86,18 @@ process parse_workbooks {
 
 workflow {
     parse_workbooks()
+}
+
+workflow.onError {
+    println "Error: Pipeline execution stopped with the following message: ${workflow.errorMessage}"
+    error = true
+}
+
+workflow.onComplete {
+    if (error) {
+        println "Error: Pipeline execution stopped with the following message: ${workflow.errorMessage}"
+    }
+    else {
+        println "Workflow completed successfully"
+    }
 }
