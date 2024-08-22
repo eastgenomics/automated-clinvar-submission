@@ -16,7 +16,7 @@ params.subfolder = 'csvs'
 // Retrieve the token from the environment variable DX_TOKEN
 params.token = System.getenv('DX_TOKEN') ?: null
 params.slack_channel = 'egg-test'
-
+params.testing = true
 
 process parse_workbooks {
     beforeScript 'echo "Starting the workflow"'
@@ -31,27 +31,27 @@ process parse_workbooks {
     cmd += " --failed_file_log ${params.failed_file_log}"
     cmd += " --completed_dir ${params.completed_dir}"
     cmd += " --failed_dir ${params.failed_dir}"
+    if (params.testing == true) {
+        """
+        cp /variant_workbook_parser/parser_config.json ./parser_config.json
+        if ${cmd} --no_dx_upload; then
+            echo "Success"
+            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+             -o "success" --fail-log-path ${params.failed_file_log} \
+             --pass-log-path ${params.parsed_file_log} -T
+        else
+            echo "Failure"
+            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+             -o "fail" --fail-log-path ${params.failed_file_log} \
+             --pass-log-path ${params.parsed_file_log} -T
+        fi
+        """
+    }
     if (params.no_dx_upload == true) {
         """
         cp /variant_workbook_parser/parser_config.json ./parser_config.json
         if ${cmd} --no_dx_upload; then
             echo "Success"
-            bash /home/report_success.sh ${params.slack_channel} 'message' 'success'
-        else
-            echo "Failure"
-            bash /home/report_failure.sh ${params.slack_channel} 'message' 'failure'
-        fi
-        """
-    } else if (params.token) {
-        """
-        cp /variant_workbook_parser/parser_config.json ./parser_config.json
-        if ${cmd} --tk ${params.token}; then
-            echo "Success"
-            bash /home/report_success.sh ${params.slack_channel} 'message' 'success'
-            python3 /home/utils/slack_notifications.py --m "testing" -c ${params.slack_channel} \
-             -o "T" --fail-log-path /home/rswilson1/Documents/test_parsing/workbooks_fail_to_parse.txt \
-             --pass-log-path /home/rswilson1/Documents/test_parsing/workbooks_parsed_all_variants.txt
-
             python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "success" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log}
@@ -60,7 +60,21 @@ process parse_workbooks {
             python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "fail" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log}
-            bash /home/report_failure.sh ${params.slack_channel} 'message' 'failure'
+        fi
+        """
+    } else if (params.token) {
+        """
+        cp /variant_workbook_parser/parser_config.json ./parser_config.json
+        if ${cmd} --tk ${params.token}; then
+            echo "Success"
+            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+             -o "success" --fail-log-path ${params.failed_file_log} \
+             --pass-log-path ${params.parsed_file_log}
+        else
+            echo "Failure"
+            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+             -o "fail" --fail-log-path ${params.failed_file_log} \
+             --pass-log-path ${params.parsed_file_log}
         fi
         """
     } else {
@@ -71,13 +85,11 @@ process parse_workbooks {
             python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "success" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log}
-            bash /home/report_success.sh ${params.slack_channel} 'message' 'success'
         else
             echo "Failure"
             python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "fail" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log}
-            bash /home/report_failure.sh ${params.slack_channel} 'message' 'failure'
         fi
         """
     }
