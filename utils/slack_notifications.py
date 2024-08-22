@@ -264,10 +264,6 @@ def coordinate_notifications(parsed_args, outcome):
         Generates slack notification based on the outcome of the job.
         Using the Slack API.
     """
-    total_parsed, total_passed, total_failed = collate_wb_info(
-        parsed_args.fail_log_path, parsed_args.pass_log_path
-    )
-    print(f"total_parsed: {total_parsed}, total_passed: {total_passed}, total_failed: {total_failed}")
 
     if parsed_args.testing:
         script_name = ':mailbox:automated-workbook-parsing - Testing :test_tube:'
@@ -284,10 +280,13 @@ def coordinate_notifications(parsed_args, outcome):
         raise ValueError("Invalid channel provided for slack notification")
     # Logic to handle different messages
     if outcome == 'success':
+        total_parsed, total_passed, total_failed = collate_wb_info(
+        parsed_args.fail_log_path, parsed_args.pass_log_path
+        )
         if total_failed > 0:
             message = (
                 f"{script_name}\n"
-                f"Automated parsing of sucessfully run.\n"
+                f"Automated parsing has sucessfully run.\n"
                 f":black_small_square: {total_parsed} workbooks parsed\n"
                 f":black_small_square: {total_passed} passed\n"
                 f":black_small_square: {total_failed} failed\n"
@@ -296,7 +295,7 @@ def coordinate_notifications(parsed_args, outcome):
         elif total_parsed == total_passed:
             message = (
                 f"{script_name}\n"
-                f"Automated parsing of sucessfully run.\n"
+                f"Automated parsing has sucessfully run.\n"
                 f":black_small_square: {total_parsed} workbooks parsed\n"
                 f":black_small_square: {total_passed} passed\n"
                 f":black_small_square: {total_failed} failed\n"
