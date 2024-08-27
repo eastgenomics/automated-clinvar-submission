@@ -8,7 +8,7 @@ import argparse
 
 from unittest.mock import patch, Mock
 import logging
-sys.path.append('../utils')
+sys.path.append('utils/')
 
 from slack_notifications import (
     parse_args, read_log_file, filter_by_today, count_metrics,
