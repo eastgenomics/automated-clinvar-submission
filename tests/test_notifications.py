@@ -1,3 +1,6 @@
+"""
+Test cases for slack_notifications.py
+"""
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
 from datetime import datetime
@@ -14,6 +17,10 @@ from slack_notifications import (
     parse_args, read_log_file, filter_by_today, count_metrics,
     collate_wb_info, slack_notify_webhook, coordinate_notifications
 )
+
+# Mock logging
+log = logging.getLogger('slack_notifications')
+log.setLevel(logging.DEBUG)
 
 
 class TestSlackNotifications(unittest.TestCase):
@@ -60,7 +67,8 @@ class TestSlackNotifications(unittest.TestCase):
     def test_count_metrics_empty(self):
         fail_lines = []
         pass_lines = []
-        total_parsed, total_passed, total_failed = count_metrics(fail_lines, pass_lines)
+        total_parsed, total_passed, total_failed = count_metrics(
+            fail_lines, pass_lines)
         self.assertEqual(total_parsed, 0)
         self.assertEqual(total_passed, 0)
         self.assertEqual(total_failed, 0)
@@ -80,7 +88,8 @@ class TestSlackNotifications(unittest.TestCase):
     def test_count_metrics(self):
         fail_lines = ['fail1', 'fail2']
         pass_lines = ['pass1', 'pass2', 'pass3']
-        total_parsed, total_passed, total_failed = count_metrics(fail_lines, pass_lines)
+        total_parsed, total_passed, total_failed = count_metrics(
+            fail_lines, pass_lines)
         self.assertEqual(total_parsed, 5)
         self.assertEqual(total_passed, 3)
         self.assertEqual(total_failed, 2)
@@ -93,7 +102,8 @@ class TestSlackNotifications(unittest.TestCase):
             ['01/10/2023 pass1', '01/10/2023 pass2', '01/10/2023 pass3']
         ]
         mock_filter_by_today.side_effect = lambda x: x
-        total_parsed, total_passed, total_failed = collate_wb_info('fail_log.txt', 'pass_log.txt')
+        total_parsed, total_passed, total_failed = collate_wb_info(
+            'fail_log.txt', 'pass_log.txt')
         self.assertEqual(total_parsed, 5)
         self.assertEqual(total_passed, 3)
         self.assertEqual(total_failed, 2)
@@ -104,7 +114,8 @@ class TestSlackNotifications(unittest.TestCase):
         mock_response.status_code = 200
         mock_post.return_value = mock_response
 
-        slack_notify_webhook('Test message', 'success', 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX')
+        slack_notify_webhook('Test message', 'success',
+                             'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX')
         mock_post.assert_called_once_with(
             'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX',
             data=json.dumps({"text": ":white_check_mark: Test message"}),
@@ -123,9 +134,6 @@ class TestSlackNotifications(unittest.TestCase):
         coordinate_notifications(parsed_args, 'success')
         mock_slack_notify_webhook.assert_called_once()
 
-# Mock logging
-log = logging.getLogger('slack_notifications')
-log.setLevel(logging.DEBUG)
 
 class TestSlackNotifier(unittest.TestCase):
     @patch('slack_notifications.Session.post')
@@ -136,8 +144,10 @@ class TestSlackNotifier(unittest.TestCase):
         mock_post.return_value = mock_response
 
         with patch('slack_notifications.log') as mock_log:
-            slack_notify_webhook('Test message', 'success', 'http://fake-webhook-url')
-            mock_log.info.assert_called_with("Successfully sent slack notification")
+            slack_notify_webhook('Test message', 'success',
+                                 'http://fake-webhook-url')
+            mock_log.info.assert_called_with(
+                "Successfully sent slack notification")
 
     @patch('slack_notifications.Session.post')
     def test_slack_notify_webhook_fail(self, mock_post):
@@ -147,9 +157,11 @@ class TestSlackNotifier(unittest.TestCase):
         mock_post.return_value = mock_response
 
         with patch('slack_notifications.log') as mock_log:
-            slack_notify_webhook('Test message', 'wrong_outcome', 'http://fake-webhook-url')
+            slack_notify_webhook(
+                'Test message', 'wrong_outcome', 'http://fake-webhook-url')
             print(mock_log.error)
-            mock_log.error.assert_called_with(f"Error in sending slack notification: {mock_post.return_value.text}")
+            mock_log.error.assert_called_with(
+                f"Error in sending slack notification: {mock_post.return_value.text}")
 
     @patch('slack_notifications.Session.post')
     def test_slack_notify_webhook_invalid_outcome(self, mock_post):
@@ -159,8 +171,10 @@ class TestSlackNotifier(unittest.TestCase):
         mock_post.return_value = mock_response
 
         with patch('slack_notifications.log') as mock_log:
-            slack_notify_webhook('Test message', 'invalid', 'http://fake-webhook-url')
-            mock_log.error.assert_called_with("Invalid outcome invalid provided for slack notification")
+            slack_notify_webhook('Test message', 'invalid',
+                                 'http://fake-webhook-url')
+            mock_log.error.assert_called_with(
+                "Invalid outcome invalid provided for slack notification")
 
     @patch('slack_notifications.collate_wb_info')
     @patch('slack_notifications.slack_notify_webhook')
@@ -173,6 +187,7 @@ class TestSlackNotifier(unittest.TestCase):
         )
         coordinate_notifications(parsed_args, 'success')
         mock_slack_notify_webhook.assert_called_once()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -14,12 +14,13 @@ from dotenv import load_dotenv
 import json
 
 logging.basicConfig(
-    filename="app.log",
+    filename="/tmp/auto_clinvar_slack_notify.log",
     encoding="utf-8",
     filemode="a",
     format="{asctime} - {levelname} - {message}",
     style="{",
     datefmt="%Y-%m-%d %H:%M",
+    level = logging.INFO
     )
 log = logging.getLogger("monitor log")
 
