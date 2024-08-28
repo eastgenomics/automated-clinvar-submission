@@ -12,7 +12,6 @@
   - [Usage](#usage)
       - [Locally](#locally)
       - [In Docker env](#in-docker-env)
-- [Developed by East Genomics](#developed-by-east-genomics)
 
 ## Introduction
 
@@ -63,6 +62,3 @@ List the necessary pre-requirements for the project, including environment token
 #### In Docker env
 `docker run -it automated_clinvar_submission`
 `nextflow run main.nf -c configuration_file.txt`
-
-
-# Developed by East Genomics
