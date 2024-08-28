@@ -23,7 +23,7 @@ process parse_workbooks {
     // afterScript "bash /home/report_success.sh ${params.slack_channel} 'message' 'success'"
 
     script:
-    def cmd = "python3 /variant_workbook_parser/variant_workbook_parser.py"
+    def cmd = "/pyenv/shims/python3 /variant_workbook_parser/variant_workbook_parser.py"
     cmd += " --indir ${params.indir}"
     cmd += " --outdir ${params.outdir}"
     cmd += " --parsed_file_log ${params.parsed_file_log}"
@@ -36,12 +36,12 @@ process parse_workbooks {
         cp /variant_workbook_parser/parser_config.json ./parser_config.json
         if ${cmd} --no_dx_upload; then
             echo "Success"
-            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+            /pyenv/shims/python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "success" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log} -T
         else
             echo "Failure"
-            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+            /pyenv/shims/python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "fail" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log} -T
         fi
@@ -52,12 +52,12 @@ process parse_workbooks {
         cp /variant_workbook_parser/parser_config.json ./parser_config.json
         if ${cmd} --no_dx_upload; then
             echo "Success"
-            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+            /pyenv/shims/python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "success" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log}
         else
             echo "Failure"
-            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+            /pyenv/shims/python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "fail" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log}
         fi
@@ -67,12 +67,12 @@ process parse_workbooks {
         cp /variant_workbook_parser/parser_config.json ./parser_config.json
         if ${cmd} --tk ${params.token}; then
             echo "Success"
-            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+            /pyenv/shims/python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "success" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log}
         else
             echo "Failure"
-            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+            /pyenv/shims/python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "fail" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log}
         fi
@@ -82,12 +82,12 @@ process parse_workbooks {
         cp /variant_workbook_parser/parser_config.json ./parser_config.json
         if ${cmd}; then
             echo "Success"
-            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+            /pyenv/shims/python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "success" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log}
         else
             echo "Failure"
-            python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+            /pyenv/shims/python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
              -o "fail" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log}
         fi
