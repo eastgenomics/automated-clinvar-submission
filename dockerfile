@@ -53,8 +53,10 @@ RUN exec "$SHELL" && \
 # Global enable python 3.10.10 and install the variant_workbook_parser
 RUN /pyenv/bin/pyenv global 3.10.10 && \
     /pyenv/bin/pyenv rehash && \
-    git clone --depth 1 --branch $(git ls-remote --tags --refs --sort="v:refname" https://github.com/eastgenomics/variant_workbook_parser.git | tail -n1 | sed 's/.*\///') \
-    https://github.com/eastgenomics/variant_workbook_parser.git /variant_workbook_parser && \
+    git clone https://github.com/eastgenomics/variant_workbook_parser.git /variant_workbook_parser && \
+    cd /variant_workbook_parser && \
+    git checkout main && \
+    git pull && \
     /pyenv/versions/3.10.10/bin/python -m ensurepip && \
     /pyenv/versions/3.10.10/bin/python -m pip install --upgrade pip && \
     /pyenv/versions/3.10.10/bin/python -m pip install -r /variant_workbook_parser/requirements.txt
