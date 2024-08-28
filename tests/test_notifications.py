@@ -25,7 +25,9 @@ log.setLevel(logging.DEBUG)
 
 class TestSlackNotifications(unittest.TestCase):
 
-    @patch.dict(os.environ, {'SLACK_WEBHOOK_URL': 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'})
+    @patch.dict(os.environ, {
+        'SLACK_WEBHOOK_URL': 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+        })
     def test_parse_args(self):
         test_args = [
             'script_name', '-c', 'egg-test', '-o', 'success',
@@ -114,8 +116,10 @@ class TestSlackNotifications(unittest.TestCase):
         mock_response.status_code = 200
         mock_post.return_value = mock_response
 
-        slack_notify_webhook('Test message', 'success',
-                             'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX')
+        slack_notify_webhook(
+            'Test message', 'success',
+            'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+            )
         mock_post.assert_called_once_with(
             'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX',
             data=json.dumps({"text": ":white_check_mark: Test message"}),

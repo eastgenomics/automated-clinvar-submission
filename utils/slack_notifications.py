@@ -126,14 +126,18 @@ def count_metrics(fail_lines, pass_lines):
 def collate_wb_info(fail_log_path: str = 'workbooks_fail_to_parse.txt',
                     pass_log_path: str = 'workbooks_parsed_all_variants.txt'):
     """
-    Collates workbook information and returns the total parsed, total passed, and total failed metrics.
+    Collates workbook information and returns the total parsed,
+        total passed, and total failed metrics.
 
     Parameters
     ----------
     fail_log_path : str, optional, by default 'workbooks_fail_to_parse.txt'
-        The file path to the log file containing the workbooks that failed to parse. Default is 'workbooks_fail_to_parse.txt'.
+        The file path to the log file containing the workbooks that failed to parse.
+        Default is 'workbooks_fail_to_parse.txt'.
     pass_log_path : str, optional, by default 'workbooks_parsed_all_variants.txt'
-        The file path to the log file containing the workbooks that parsed all variants. Default is 'workbooks_parsed_all_variants.txt'.
+        The file path to the log file containing the workbooks
+            with all parsed variants.
+        Default is 'workbooks_parsed_all_variants.txt'.
 
     Returns
     -------
