@@ -20,11 +20,12 @@ logging.basicConfig(
     format="{asctime} - {levelname} - {message}",
     style="{",
     datefmt="%Y-%m-%d %H:%M",
-    level = logging.INFO
-    )
+    level=logging.INFO
+)
 log = logging.getLogger("monitor log")
 
 load_dotenv()
+
 
 def parse_args():
     """
@@ -155,6 +156,7 @@ def collate_wb_info(fail_log_path: str = 'workbooks_fail_to_parse.txt',
 
     return total_parsed, total_passed, total_failed
 
+
 def slack_notify(channel, message, outcome, slack_token) -> None:
     """
     Send notification to given Slack channel
@@ -207,6 +209,7 @@ def slack_notify(channel, message, outcome, slack_token) -> None:
             f"Error in sending post request for slack notification: {err}"
         )
 
+
 def slack_notify_webhook(message, outcome, webhook_url) -> None:
     """
     Send notification to given Slack channel using a webhook
@@ -248,8 +251,10 @@ def slack_notify_webhook(message, outcome, webhook_url) -> None:
             log.info("Successfully sent slack notification")
         return response
     except Exception as err:
-        log.error(f"Error in sending post request for slack notification: {err}")
+        log.error(
+            f"Error in sending post request for slack notification: {err}")
         print(err)
+
 
 def coordinate_notifications(parsed_args, outcome):
     """
@@ -282,7 +287,7 @@ def coordinate_notifications(parsed_args, outcome):
     # Logic to handle different messages
     if outcome == 'success':
         total_parsed, total_passed, total_failed = collate_wb_info(
-        parsed_args.fail_log_path, parsed_args.pass_log_path
+            parsed_args.fail_log_path, parsed_args.pass_log_path
         )
         if total_failed > 0:
             message = (
@@ -310,7 +315,7 @@ def coordinate_notifications(parsed_args, outcome):
         if parsed_args.testing:
             parsed_args.channel = 'egg-test'  # override channel for testing
         else:
-            parsed_args.channel = 'egg-test'  # override channel for testing
+            parsed_args.channel = 'egg-alerts'
         slack_notify_webhook(message, 'fail', SLACK_WEBHOOK_URL)
     else:
         log.error("Invalid outcome provided for slack notification")
