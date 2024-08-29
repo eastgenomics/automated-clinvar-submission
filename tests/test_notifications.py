@@ -20,10 +20,11 @@ from slack_notifications import (
 
 # Mock logging
 log = logging.getLogger('slack_notifications')
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
-
-class TestSlackNotifications(unittest.TestCase):
+# Global variables
+WEBHOOK_URL = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+class TestArgparse(unittest.TestCase):
 
     @patch.dict(os.environ, {
         'SLACK_WEBHOOK_URL':
@@ -45,6 +46,7 @@ class TestSlackNotifications(unittest.TestCase):
             self.assertEqual(args.fail_log_path, 'fail_log.txt')
             self.assertEqual(args.pass_log_path, 'pass_log.txt')
 
+class TestFileReading(unittest.TestCase):
     @patch('builtins.open', new_callable=mock_open, read_data='line1\nline2\n')
     def test_read_log_file(self, mock_file):
         """
@@ -58,6 +60,16 @@ class TestSlackNotifications(unittest.TestCase):
         lines = read_log_file('dummy_path')
         self.assertEqual(lines, ['line1\n', 'line2\n'])
 
+    def test_read_log_file_empty(self):
+        """
+        test_read_log_file_empty
+        Test if reading an empty log file returns an empty list.
+        """
+        with patch('builtins.open', new_callable=mock_open, read_data=''):
+            lines = read_log_file('dummy_path')
+            self.assertEqual(lines, [])
+
+class TestFiltering(unittest.TestCase):
     @patch('slack_notifications.datetime')
     def test_filter_by_today(self, mock_datetime):
         """
@@ -73,15 +85,6 @@ class TestSlackNotifications(unittest.TestCase):
         log_lines = ['01/10/2023 log entry', '30/09/2023 log entry']
         filtered_lines = filter_by_today(log_lines)
         self.assertEqual(filtered_lines, ['01/10/2023 log entry'])
-
-    def test_read_log_file_empty(self):
-        """
-        test_read_log_file_empty
-        Test if reading an empty log file returns an empty list.
-        """
-        with patch('builtins.open', new_callable=mock_open, read_data=''):
-            lines = read_log_file('dummy_path')
-            self.assertEqual(lines, [])
 
     def test_filter_by_today_empty(self):
         """
@@ -124,6 +127,7 @@ class TestSlackNotifications(unittest.TestCase):
             coordinate_notifications(parsed_args, 'failure')
             mock_slack_notify_webhook.assert_called_once()
 
+class TestMetrics(unittest.TestCase):
     def test_count_metrics(self):
         """
         test_count_metrics
@@ -162,11 +166,14 @@ class TestSlackNotifications(unittest.TestCase):
         self.assertEqual(total_passed, 3)
         self.assertEqual(total_failed, 2)
 
-    @patch('requests.Session.post')
-    def test_slack_notify_webhook(self, mock_post):
+
+class TestSlackNotifyWebhook(unittest.TestCase):
+
+    @patch('slack_notifications.Session.post')
+    def test_slack_notify_webhook_success(self, mock_post):
         """
-        test_slack_notify_webhook
         Test if slack_notify_webhook sends a POST request with the correct data
+        when the outcome is 'success'.
 
         Parameters
         ----------
@@ -177,46 +184,19 @@ class TestSlackNotifications(unittest.TestCase):
         mock_response.status_code = 200
         mock_post.return_value = mock_response
 
-        slack_notify_webhook(
-            'Test message', 'success',
-            'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
-            )
+        message = 'Test message'
+        outcome = 'success'
+
+        slack_notify_webhook(message, outcome, WEBHOOK_URL)
+
         mock_post.assert_called_once_with(
-            'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX',
-            data=json.dumps({"text": ":white_check_mark: Test message"}),
+            WEBHOOK_URL,
+            data='{"text": ":white_check_mark: Test message"}',
             headers={'Content-Type': 'application/json'}
         )
 
-    @patch('slack_notifications.collate_wb_info')
-    @patch('slack_notifications.slack_notify_webhook')
-    def test_coordinate_notifications(self,
-                                      mock_slack_notify_webhook,
-                                      mock_collate_wb_info):
-        """
-        test_coordinate_notifications
-        Test if coordinate_notifications calls slack_notify_webhook.
-
-        Parameters
-        ----------
-        mock_slack_notify_webhook : unittest.mock.MagicMock
-            Mock slack_notify_webhook function
-        mock_collate_wb_info : unittest.mock.MagicMock
-            Mock collate_wb_info function
-        """
-
-        mock_collate_wb_info.return_value = (10, 8, 2)
-        parsed_args = argparse.Namespace(
-            channel='egg-test', outcome='success',
-            fail_log_path='fail_log.txt', pass_log_path='pass_log.txt',
-            testing=False
-        )
-        coordinate_notifications(parsed_args, 'success')
-        mock_slack_notify_webhook.assert_called_once()
-
-
-class TestSlackNotifier(unittest.TestCase):
     @patch('slack_notifications.Session.post')
-    def test_slack_notify_webhook_success(self, mock_post):
+    def test_slack_notify_webhook_logging_success(self, mock_post):
         """
         test_slack_notify_webhook_success
         Test if slack_notify_webhook logs a successful notification.
@@ -234,12 +214,88 @@ class TestSlackNotifier(unittest.TestCase):
 
         with patch('slack_notifications.log') as mock_log:
             slack_notify_webhook('Test message', 'success',
-                                 'http://fake-webhook-url')
+                                 WEBHOOK_URL)
             mock_log.info.assert_called_with(
                 "Successfully sent slack notification")
 
     @patch('slack_notifications.Session.post')
-    def test_slack_notify_webhook_fail(self, mock_post):
+    def test_slack_notify_webhook_logging_failure(self, mock_post):
+        """
+        Test if slack_notify_webhook sends a POST request with the correct data
+        when the outcome is 'fail'.
+
+        Parameters
+        ----------
+        mock_post : unittest.mock.MagicMock
+            Mock POST request
+        """
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_post.return_value = mock_response
+
+        message = 'Test message'
+        outcome = 'fail'
+
+        slack_notify_webhook(message, outcome, WEBHOOK_URL)
+
+        mock_post.assert_called_once_with(
+            WEBHOOK_URL,
+            data='{"text": ":warning: Test message"}',
+            headers={'Content-Type': 'application/json'}
+        )
+
+    @patch('slack_notifications.Session.post')
+    def test_slack_notify_webhook_invalid_outcome(self, mock_post):
+        """
+        Test if slack_notify_webhook sends a POST request with the correct data
+        when the outcome is invalid.
+
+        Parameters
+        ----------
+        mock_post : unittest.mock.MagicMock
+            Mock POST request
+        """
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_post.return_value = mock_response
+
+        message = 'Test message'
+        outcome = 'invalid'
+
+        slack_notify_webhook(message, outcome, WEBHOOK_URL)
+
+        mock_post.assert_called_once_with(
+            WEBHOOK_URL,
+            data='{"text": ":warning: Error Invalid outcome invalid - Test message"}',
+            headers={'Content-Type': 'application/json'}
+        )
+
+    @patch('slack_notifications.Session.post')
+    def test_slack_notify_webhook_error(self, mock_post):
+        """
+        Test if slack_notify_webhook handles error in sending post request.
+
+        Parameters
+        ----------
+        mock_post : unittest.mock.MagicMock
+            Mock POST request
+        """
+        mock_post.side_effect = Exception('Error sending post request')
+
+        message = 'Test message'
+        outcome = 'success'
+
+        with self.assertRaises(Exception):
+            slack_notify_webhook(message, outcome, WEBHOOK_URL)
+
+        mock_post.assert_called_once_with(
+            WEBHOOK_URL,
+            data='{"text": ":white_check_mark: Test message"}',
+            headers={'Content-Type': 'application/json'}
+        )
+
+    @patch('slack_notifications.Session.post')
+    def test_slack_notify_webhook_logging_fail(self, mock_post):
         """
         test_slack_notify_webhook_fail
         Test if slack_notify_webhook logs an error for a failed notification.
@@ -256,13 +312,13 @@ class TestSlackNotifier(unittest.TestCase):
 
         with patch('slack_notifications.log') as mock_log:
             slack_notify_webhook(
-                'Test message', 'wrong_outcome', 'http://fake-webhook-url')
+                'Test message', 'wrong_outcome', WEBHOOK_URL)
             print(mock_log.error)
             mock_log.error.assert_called_with(
                 f"Error in sending slack notification: {mock_post.return_value.text}")
 
     @patch('slack_notifications.Session.post')
-    def test_slack_notify_webhook_invalid_outcome(self, mock_post):
+    def test_slack_notify_webhook_logging_invalid_outcome(self, mock_post):
         """
         test_slack_notify_webhook_invalid_outcome
         Test if slack_notify_webhook logs an error for invalid outcome.
@@ -279,10 +335,12 @@ class TestSlackNotifier(unittest.TestCase):
 
         with patch('slack_notifications.log') as mock_log:
             slack_notify_webhook('Test message', 'invalid',
-                                 'http://fake-webhook-url')
+                                 WEBHOOK_URL)
             mock_log.error.assert_called_with(
                 "Invalid outcome invalid provided for slack notification")
 
+
+class TestCoordinateNotifications(unittest.TestCase):
     @patch('slack_notifications.collate_wb_info')
     @patch('slack_notifications.slack_notify_webhook')
     def test_coordinate_notifications(self,
@@ -299,6 +357,7 @@ class TestSlackNotifier(unittest.TestCase):
         mock_collate_wb_info : unittest.mock.MagicMock
             Mock collate_wb_info function
         """
+
         mock_collate_wb_info.return_value = (10, 8, 2)
         parsed_args = argparse.Namespace(
             channel='egg-test', outcome='success',
