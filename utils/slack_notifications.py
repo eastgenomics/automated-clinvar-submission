@@ -37,7 +37,7 @@ def parse_args():
         parsed arguments
     """
     parser = argparse.ArgumentParser(
-        description="Monitor jobs launched by eggd_conductor"
+        description="Raising slack notifications for automated clinvar submission"
     )
     parser.add_argument(
         '-c', '--channel', help="Slack channel to send notification to",
