@@ -36,12 +36,12 @@ process parse_workbooks {
         cp /variant_workbook_parser/parser_config.json ./parser_config.json
         if ${cmd} --no_dx_upload; then
             echo "Success"
-            /pyenv/shims/python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+            /pyenv/shims/python3 /home/utils/slack_notifications.py -c 'egg-test' \
              -o "success" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log} -T
         else
             echo "Failure"
-            /pyenv/shims/python3 /home/utils/slack_notifications.py -c ${params.slack_channel} \
+            /pyenv/shims/python3 /home/utils/slack_notifications.py -c 'egg-test' \
              -o "fail" --fail-log-path ${params.failed_file_log} \
              --pass-log-path ${params.parsed_file_log} -T
         fi
