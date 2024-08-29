@@ -54,9 +54,7 @@ def parse_args():
         '--pass-log-path', help="path to pass log file", type=str,
         required=True
     )
-    parser.add_argument(
-        '-T', '--testing', help="testing flag", action='store_true'
-    )
+
     return parser.parse_args()
 
 
@@ -275,10 +273,10 @@ def coordinate_notifications(parsed_args, outcome):
         Using the Slack API.
     """
 
-    if parsed_args.testing:
-        script_name = ':mailbox:automated-workbook-parsing - Testing :test_tube:'
+    if parsed_args.channel == 'egg-test':
+        script_name = ':mailbox: automated-workbook-parsing - Testing :test_tube:'
     else:
-        script_name = ':mailbox:automated-workbook-parsing'
+        script_name = ':mailbox: automated-workbook-parsing'
     # Chnage webhook URL depending on the channel
     if parsed_args.channel == 'egg-test':
         SLACK_WEBHOOK_URL = os.getenv('SLACK_WEBHOOK_TEST')
@@ -296,16 +294,16 @@ def coordinate_notifications(parsed_args, outcome):
         if total_failed > 0:
             message = (
                 f"{script_name}\n"
-                f"Automated parsing has sucessfully run.\n"
+                f"Automated parsing has successfully run.\n"
                 f":black_small_square: {total_parsed} workbooks parsed\n"
                 f":black_small_square: {total_passed} passed\n"
                 f":black_small_square: {total_failed} failed\n"
             )
-            slack_notify_webhook(message, 'success', SLACK_WEBHOOK_URL)
+            slack_notify_webhook(message, 'fail', SLACK_WEBHOOK_URL)
         elif total_parsed == total_passed:
             message = (
                 f"{script_name}\n"
-                f"Automated parsing has sucessfully run.\n"
+                f"Automated parsing has successfully run.\n"
                 f":black_small_square: {total_parsed} workbooks parsed\n"
                 f":black_small_square: {total_passed} passed\n"
                 f":black_small_square: {total_failed} failed\n"
@@ -316,10 +314,6 @@ def coordinate_notifications(parsed_args, outcome):
             slack_notify_webhook(message, 'success', SLACK_WEBHOOK_URL)
     elif outcome == 'fail':
         message = f"Automated parsing of workbooks failed.\n Please check error logs. \n"
-        if parsed_args.testing:
-            parsed_args.channel = 'egg-test'  # override channel for testing
-        else:
-            parsed_args.channel = 'egg-alerts'
         slack_notify_webhook(message, 'fail', SLACK_WEBHOOK_URL)
     else:
         log.error("Invalid outcome provided for slack notification")
@@ -337,9 +331,8 @@ def main():
     Main function to run the script.
     """
     parsed_args = parse_args()
-    if parsed_args.testing:
+    if parsed_args.channel == 'egg-test':
         log.info("Running in testing mode")
-        parsed_args.channel = 'egg-test'
     coordinate_notifications(parsed_args, parsed_args.outcome)
 
 
