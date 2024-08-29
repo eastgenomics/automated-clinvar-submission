@@ -26,11 +26,16 @@ log.setLevel(logging.DEBUG)
 class TestSlackNotifications(unittest.TestCase):
 
     @patch.dict(os.environ, {
-        'SLACK_WEBHOOK_URL': 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+        'SLACK_WEBHOOK_URL':
+            'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
         })
     def test_parse_args(self):
+        """
+        test_parse_args
+        Test parsing of command line arguments
+        """
         test_args = [
-            'script_name', '-c', 'egg-test', '-o', 'success',
+            'slack_notifications.py', '-c', 'egg-test', '-o', 'success',
             '--fail-log-path', 'fail_log.txt', '--pass-log-path', 'pass_log.txt'
         ]
         with patch('sys.argv', test_args):
@@ -42,11 +47,27 @@ class TestSlackNotifications(unittest.TestCase):
 
     @patch('builtins.open', new_callable=mock_open, read_data='line1\nline2\n')
     def test_read_log_file(self, mock_file):
+        """
+        test_read_log_file
+        Test reading of log file.
+        Parameters
+        ----------
+        mock_file : unittest.mock.MagicMock
+            Mock file object
+        """
         lines = read_log_file('dummy_path')
         self.assertEqual(lines, ['line1\n', 'line2\n'])
 
     @patch('slack_notifications.datetime')
     def test_filter_by_today(self, mock_datetime):
+        """
+        test_filter_by_today
+        Test filtering of log lines by today's date.
+        Parameters
+        ----------
+        mock_datetime : unittest.mock.MagicMock
+            Mock datetime object
+        """
         mock_datetime.now.return_value = datetime(2023, 10, 1)
         mock_datetime.strftime.return_value = '01/10/2023'
         log_lines = ['01/10/2023 log entry', '30/09/2023 log entry']
@@ -54,11 +75,19 @@ class TestSlackNotifications(unittest.TestCase):
         self.assertEqual(filtered_lines, ['01/10/2023 log entry'])
 
     def test_read_log_file_empty(self):
+        """
+        test_read_log_file_empty
+        Test if reading an empty log file returns an empty list.
+        """
         with patch('builtins.open', new_callable=mock_open, read_data=''):
             lines = read_log_file('dummy_path')
             self.assertEqual(lines, [])
 
     def test_filter_by_today_empty(self):
+        """
+        test_filter_by_today_empty
+        Test if filtering an empty list returns an empty list.
+        """
         with patch('slack_notifications.datetime') as mock_datetime:
             mock_datetime.now.return_value = datetime(2023, 10, 1)
             mock_datetime.strftime.return_value = '01/10/2023'
@@ -67,6 +96,10 @@ class TestSlackNotifications(unittest.TestCase):
             self.assertEqual(filtered_lines, [])
 
     def test_count_metrics_empty(self):
+        """
+        test_count_metrics_empty
+        Test if count_metrics returns 0 for all metrics when no lines are provided.
+        """
         fail_lines = []
         pass_lines = []
         total_parsed, total_passed, total_failed = count_metrics(
@@ -76,6 +109,10 @@ class TestSlackNotifications(unittest.TestCase):
         self.assertEqual(total_failed, 0)
 
     def test_coordinate_notifications_failure(self):
+        """
+        test_coordinate_notifications_failure
+        Test if coordinate_notifications calls slack_notify_webhook on failure.
+        """
         with patch('slack_notifications.collate_wb_info') as mock_collate_wb_info, \
                 patch('slack_notifications.slack_notify_webhook') as mock_slack_notify_webhook:
             mock_collate_wb_info.return_value = (10, 8, 2)
@@ -88,6 +125,10 @@ class TestSlackNotifications(unittest.TestCase):
             mock_slack_notify_webhook.assert_called_once()
 
     def test_count_metrics(self):
+        """
+        test_count_metrics
+        Test if count_metrics returns correct metrics.
+        """
         fail_lines = ['fail1', 'fail2']
         pass_lines = ['pass1', 'pass2', 'pass3']
         total_parsed, total_passed, total_failed = count_metrics(
@@ -99,6 +140,17 @@ class TestSlackNotifications(unittest.TestCase):
     @patch('slack_notifications.read_log_file')
     @patch('slack_notifications.filter_by_today')
     def test_collate_wb_info(self, mock_filter_by_today, mock_read_log_file):
+        """
+        test_collate_wb_info
+        Test if collate_wb_info returns correct metrics.
+
+        Parameters
+        ----------
+        mock_filter_by_today : unittest.mock.MagicMock
+            Mock filter_by_today function
+        mock_read_log_file : unittest.mock.MagicMock
+            Mock read_log_file function
+        """
         mock_read_log_file.side_effect = [
             ['01/10/2023 fail1', '01/10/2023 fail2'],
             ['01/10/2023 pass1', '01/10/2023 pass2', '01/10/2023 pass3']
@@ -112,6 +164,15 @@ class TestSlackNotifications(unittest.TestCase):
 
     @patch('requests.Session.post')
     def test_slack_notify_webhook(self, mock_post):
+        """
+        test_slack_notify_webhook
+        Test if slack_notify_webhook sends a POST request with the correct data
+
+        Parameters
+        ----------
+        mock_post : unittest.mock.MagicMock
+            Mock POST request
+        """
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_post.return_value = mock_response
@@ -128,7 +189,21 @@ class TestSlackNotifications(unittest.TestCase):
 
     @patch('slack_notifications.collate_wb_info')
     @patch('slack_notifications.slack_notify_webhook')
-    def test_coordinate_notifications(self, mock_slack_notify_webhook, mock_collate_wb_info):
+    def test_coordinate_notifications(self,
+                                      mock_slack_notify_webhook,
+                                      mock_collate_wb_info):
+        """
+        test_coordinate_notifications
+        Test if coordinate_notifications calls slack_notify_webhook.
+
+        Parameters
+        ----------
+        mock_slack_notify_webhook : unittest.mock.MagicMock
+            Mock slack_notify_webhook function
+        mock_collate_wb_info : unittest.mock.MagicMock
+            Mock collate_wb_info function
+        """
+
         mock_collate_wb_info.return_value = (10, 8, 2)
         parsed_args = argparse.Namespace(
             channel='egg-test', outcome='success',
@@ -142,6 +217,16 @@ class TestSlackNotifications(unittest.TestCase):
 class TestSlackNotifier(unittest.TestCase):
     @patch('slack_notifications.Session.post')
     def test_slack_notify_webhook_success(self, mock_post):
+        """
+        test_slack_notify_webhook_success
+        Test if slack_notify_webhook logs a successful notification.
+
+        Parameters
+        ----------
+        mock_post : unittest.mock.MagicMock
+            Mock POST request
+        """
+
         # Mock a successful response
         mock_response = Mock()
         mock_response.status_code = 200
@@ -155,6 +240,15 @@ class TestSlackNotifier(unittest.TestCase):
 
     @patch('slack_notifications.Session.post')
     def test_slack_notify_webhook_fail(self, mock_post):
+        """
+        test_slack_notify_webhook_fail
+        Test if slack_notify_webhook logs an error for a failed notification.
+
+        Parameters
+        ----------
+        mock_post : unittest.mock.MagicMock
+            Mock POST request
+        """
         # Mock a failed response
         mock_response = Mock()
         mock_response.status_code = 400
@@ -169,6 +263,15 @@ class TestSlackNotifier(unittest.TestCase):
 
     @patch('slack_notifications.Session.post')
     def test_slack_notify_webhook_invalid_outcome(self, mock_post):
+        """
+        test_slack_notify_webhook_invalid_outcome
+        Test if slack_notify_webhook logs an error for invalid outcome.
+
+        Parameters
+        ----------
+        mock_post : unittest.mock.MagicMock
+            Mock POST request
+        """
         # Mock a failed response
         mock_response = Mock()
         mock_response.status_code = 200
@@ -182,7 +285,20 @@ class TestSlackNotifier(unittest.TestCase):
 
     @patch('slack_notifications.collate_wb_info')
     @patch('slack_notifications.slack_notify_webhook')
-    def test_coordinate_notifications(self, mock_slack_notify_webhook, mock_collate_wb_info):
+    def test_coordinate_notifications(self,
+                                      mock_slack_notify_webhook,
+                                      mock_collate_wb_info):
+        """
+        test_coordinate_notifications
+        Test if coordinate_notifications calls slack_notify_webhook.
+
+        Parameters
+        ----------
+        mock_slack_notify_webhook : unittest.mock.MagicMock
+            Mock slack_notify_webhook function
+        mock_collate_wb_info : unittest.mock.MagicMock
+            Mock collate_wb_info function
+        """
         mock_collate_wb_info.return_value = (10, 8, 2)
         parsed_args = argparse.Namespace(
             channel='egg-test', outcome='success',
