@@ -254,8 +254,10 @@ def slack_notify_webhook(message, outcome, webhook_url) -> None:
         return response
     except Exception as err:
         log.error(
-            f"Error in sending post request for slack notification: {err}")
+            f"Error in sending post request for slack notification: {err}"
+            )
         print(err)
+        raise err
 
 
 def coordinate_notifications(parsed_args, outcome):
