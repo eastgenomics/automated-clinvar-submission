@@ -8,17 +8,14 @@
   - [Features](#features)
     - [Future features](#future-features)
   - [Installation](#installation)
+      - [To run nextflow interactively](#to-run-nextflow-interactively)
   - [Pre-requirements](#pre-requirements)
-  - [Usage](#usage)
-      - [Locally](#locally)
-      - [In Docker env](#in-docker-env)
 
 ## Introduction
 
 This repository contains a Nextflow workflow designed to parse variant workbooks.
 The workflow is configured to run both locally and in a production environment.
-The production environment runs in a docker container ().
-
+The production environment runs in a docker container.
 
 ## Features
 
@@ -48,17 +45,35 @@ Then upload to server via DNAnexus
 Run docker with:
 `docker run automated_clinvar_submission:latest`
 
+#### To run nextflow interactively
+`docker run -it automated_clinvar_submission`
+`nextflow run main.nf -c configuration_file.txt`
+
+
 ## Pre-requirements
 List the necessary pre-requirements for the project, including environment tokens:
 - `DNANEXUS_TOKEN`: Your API token for accessing the DNANEXUS API.
-- `SLACK_TOKEN`: API token to access SLACK and send messages to relevant channel.
+- `SLACK_WEBHOOK_TEST`: webhook url for sending SLACK messages.
+- `SLACK_WEBHOOK_LOGS`: webhook url for sending SLACK messages.
+- `SLACK_WEBHOOK_ALERTS`: webhook url for sending SLACK messages.
 
-## Usage
+Configuration file for nextflow pipeline
 
-#### Locally
+```json
 
-`docker run automated_clinvar_submission`
+// nextflow.config
+params {
+    dnanexusProject = "project-ID"
+    indir = '/variant_workbook_parser/tests/test_data/CUH/'
+    parsed_file_log = '/test_submission/workbooks_parsed_all_variants.txt'
+    clinvar_file_log = '/test_submission/workbooks_parsed_clinvar_variants.txt'
+    failed_file_log = '/test_submission/workbooks_fail_to_parse.txt'
+    completed_dir = '/test_submission/completed_dir/'
+    failed_dir = '/test_submission/failed_dir/'
+    outdir = '/test_submission/Output/'
+    unusual_sample_name = false
+    no_dx_upload = true
+    subfolder = 'csvs'
+    }
 
-#### In Docker env
-`docker run -it automated_clinvar_submission`
-`nextflow run main.nf -c configuration_file.txt`
+```
