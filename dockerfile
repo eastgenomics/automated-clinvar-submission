@@ -63,3 +63,7 @@ RUN /pyenv/bin/pyenv global 3.10.10 && \
 COPY . /home/
 
 RUN /pyenv/versions/3.10.10/bin/python -m pip install -r /home/requirements.txt
+
+ENV SLACK_WEBHOOK_TEST=default
+ENV SLACK_WEBHOOK_LOGS=default
+ENV SLACK_WEBHOOK_ALERTS=default

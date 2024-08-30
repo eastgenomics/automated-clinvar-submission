@@ -10,7 +10,6 @@ from requests.adapters import HTTPAdapter
 import sys
 from urllib3.util import Retry
 import argparse
-from dotenv import load_dotenv
 import json
 
 logging.basicConfig(
@@ -23,8 +22,6 @@ logging.basicConfig(
     level=logging.INFO
 )
 log = logging.getLogger("monitor log")
-
-load_dotenv()
 
 
 def parse_args():
@@ -157,59 +154,6 @@ def collate_wb_info(fail_log_path: str = 'workbooks_fail_to_parse.txt',
         today_fail_lines, today_pass_lines)
 
     return total_parsed, total_passed, total_failed
-
-
-def slack_notify(channel, message, outcome, slack_token) -> None:
-    """
-    Send notification to given Slack channel
-
-    Parameters
-    ----------
-    channel : str
-        channel to send message to.
-    message : str
-        message to send to Slack.
-    outcome : str
-        "success" or "fail" to determine message color.
-    slack_token : str
-        Slack token to use for sending message.
-    """
-    log.info(f"Sending message to {channel}")
-    slack_token = os.environ.get('SLACK_TOKEN')
-
-    http = Session()
-    retries = Retry(total=5, backoff_factor=10, allowed_methods=['POST'])
-    http.mount("https://", HTTPAdapter(max_retries=retries))
-    if outcome == 'success':
-        message = f":white_check_mark: {message}"
-    elif outcome == 'fail':
-        message = f":warning: {message}"
-    else:
-        log.error(
-            f"Invalid outcome {outcome} provided for slack notification"
-        )
-    try:
-        response = http.post(
-            'https://slack.com/api/chat.postMessage', {
-                'token': slack_token,
-                'channel': f"#{channel}",
-                'text': message
-            }).json()
-
-        if not response['ok']:
-            # error in sending slack notification
-            log.error(
-                f"Error in sending slack notification: {response.get('error')}"
-            )
-        else:
-            # log job ID to know we sent an alert for it and not send another
-            log.info(
-                f"Successfully sent slack notification to {channel}"
-            )
-    except Exception as err:
-        log.error(
-            f"Error in sending post request for slack notification: {err}"
-        )
 
 
 def slack_notify_webhook(message, outcome, webhook_url) -> None:

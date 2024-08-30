@@ -5,7 +5,6 @@ mock==4.0.3
 dxpy==0.370.2
 freezegun==1.5.1
 requests==2.32.1
-python-dotenv==1.0.1
 pytest==8.3.2
 pytest-cov==3.0.0
 pytest-mock==3.6.1
