@@ -24,8 +24,12 @@ log.setLevel(logging.INFO)
 
 # Global variables
 WEBHOOK_URL = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
-class TestArgparse(unittest.TestCase):
 
+
+class TestArgparse(unittest.TestCase):
+    """
+    Test cases for parsing command line arguments.
+    """
     @patch.dict(os.environ, {
         'SLACK_WEBHOOK_URL':
             'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
@@ -46,7 +50,11 @@ class TestArgparse(unittest.TestCase):
             self.assertEqual(args.fail_log_path, 'fail_log.txt')
             self.assertEqual(args.pass_log_path, 'pass_log.txt')
 
+
 class TestFileReading(unittest.TestCase):
+    """
+    Test cases for reading log files.
+    """
     @patch('builtins.open', new_callable=mock_open, read_data='line1\nline2\n')
     def test_read_log_file(self, mock_file):
         """
@@ -69,7 +77,11 @@ class TestFileReading(unittest.TestCase):
             lines = read_log_file('dummy_path')
             self.assertEqual(lines, [])
 
+
 class TestFiltering(unittest.TestCase):
+    """
+    Test cases for filtering log lines by today's date.
+    """
     @patch('slack_notifications.datetime')
     def test_filter_by_today(self, mock_datetime):
         """
@@ -127,7 +139,11 @@ class TestFiltering(unittest.TestCase):
             coordinate_notifications(parsed_args, 'failure')
             mock_slack_notify_webhook.assert_called_once()
 
+
 class TestMetrics(unittest.TestCase):
+    """
+    Test cases for counting metrics and collating metrics from log files.
+    """
     def test_count_metrics(self):
         """
         test_count_metrics
@@ -168,7 +184,9 @@ class TestMetrics(unittest.TestCase):
 
 
 class TestSlackNotifyWebhook(unittest.TestCase):
-
+    """
+    Test cases for sending slack notifications.
+    """
     @patch('slack_notifications.Session.post')
     def test_slack_notify_webhook_success(self, mock_post):
         """
@@ -341,6 +359,9 @@ class TestSlackNotifyWebhook(unittest.TestCase):
 
 
 class TestCoordinateNotifications(unittest.TestCase):
+    """
+    Test cases for coordinating slack notifications.
+    """
     @patch('slack_notifications.collate_wb_info')
     @patch('slack_notifications.slack_notify_webhook')
     def test_coordinate_notifications(self,
