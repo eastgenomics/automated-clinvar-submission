@@ -32,8 +32,8 @@ process parse_workbooks {
     cmd += " --completed_dir ${params.completed_dir}"
     cmd += " --failed_dir ${params.failed_dir}"
     if (params.testing == true) {
-        // This if block is conditional on the success of the script (cmd).
-        // Otherwise the else raisies a failure message.
+        // This "if block" is conditional on the success of the script (cmd).
+        // Otherwise the else raises a failure message.
         """
         cp /variant_workbook_parser/parser_config.json ./parser_config.json
         if ${cmd} --no_dx_upload; then
@@ -50,8 +50,8 @@ process parse_workbooks {
         """
     }
     if (params.no_dx_upload == true) {
-        // This if block is conditional on the success of the script (cmd).
-        // Otherwise the else raisies a failure message.
+        // This "if block" is conditional on the success of the script (cmd).
+        // Otherwise the else raises a failure message.
         """
         cp /variant_workbook_parser/parser_config.json ./parser_config.json
         if ${cmd} --no_dx_upload; then
