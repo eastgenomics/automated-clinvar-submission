@@ -43,11 +43,11 @@ Then upload to server via DNAnexus
 `docker load -i automated_clinvar_submission.tar.gz`
 
 Run docker with:
-`docker run automated_clinvar_submission:latest`
+`docker run automated_clinvar_submission:latest nextflow run /home/main.nf -c /path/to/config.txt`
 
 #### To run nextflow interactively
 `docker run -it automated_clinvar_submission`
-`nextflow run main.nf -c configuration_file.txt`
+`nextflow run main.nf -c /path/to/config.txt`
 
 
 ## Pre-requirements
