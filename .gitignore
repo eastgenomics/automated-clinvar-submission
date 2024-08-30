@@ -1,0 +1,11 @@
+.env
+*env*
+__pycache__
+.vscode
+*.pickle
+*.log
+*.log.*
+.ruff_cache
+.DS_Store
+configurations/*
+*.cfg
