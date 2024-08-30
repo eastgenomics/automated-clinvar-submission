@@ -63,9 +63,3 @@ RUN /pyenv/bin/pyenv global 3.10.10 && \
 COPY . /home/
 
 RUN /pyenv/versions/3.10.10/bin/python -m pip install -r /home/requirements.txt
-
-# Specify the entrypoint to ensure the virtual environment is activated
-# production testing
-#ENTRYPOINT ["nextflow", "run", "/home/main.nf", "-c", "/home/configurations/test_config_20240821.txt"]
-# local testing
-ENTRYPOINT ["nextflow", "run", "/home/main.nf", "-c", "/home/configurations/configuration_test.txt"]
