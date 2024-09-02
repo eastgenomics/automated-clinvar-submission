@@ -13,7 +13,11 @@ RUN yum groupinstall -y "Development Tools" && \
     rm -fr /var/cache && \
     rm -rf /var/cache/yum
 
-ENV PYENV_ROOT /pyenv SLACK_WEBHOOK_TEST=default SLACK_WEBHOOK_LOGS=default SLACK_WEBHOOK_ALERTS=default
+# Set the environment variables
+ENV PYENV_ROOT /pyenv
+ENV SLACK_WEBHOOK_TEST=default
+ENV SLACK_WEBHOOK_LOGS=default
+ENV SLACK_WEBHOOK_ALERTS=default
 
 # Install pyenv and python 3.10.10
 RUN yum swap openssl-devel openssl11-devel -y && \
