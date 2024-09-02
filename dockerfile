@@ -4,10 +4,13 @@ FROM nextflow/nextflow:22.10.3
 # Install dependencies
 RUN yum groupinstall -y "Development Tools" && \
     yum install -y \
+    bzip2-devel \
     openssl-devel \
+    libffi-devel \
     wget \
     openssl11 \
     make \
+    bzip2 \
     git && \
     yum -y clean all && \
     rm -fr /var/cache && \
