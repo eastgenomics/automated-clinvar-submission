@@ -2,36 +2,24 @@
 FROM nextflow/nextflow:22.10.3
 
 # Install dependencies
-RUN yum update -y && \
-    yum groupinstall -y "Development Tools" && \
+RUN yum groupinstall -y "Development Tools" && \
     yum install -y \
-    bzip2-devel \
     openssl-devel \
-    libffi-devel \
     wget \
-    zlib-devel \
-    ncurses-devel \
-    sqlite-devel \
-    readline-devel \
-    tk-devel \
-    gdbm-devel \
-    db4-devel \
-    libpcap-devel \
-    xz-devel \
-    expat-devel \
     openssl11 \
     make \
-    bzip2 \
-    nano \
     git && \
-    yum clean all
+    yum -y clean all && \
+    rm -fr /var/cache && \
+    rm -rf /var/cache/yum
+
+ENV PYENV_ROOT /pyenv SLACK_WEBHOOK_TEST=default SLACK_WEBHOOK_LOGS=default SLACK_WEBHOOK_ALERTS=default
 
 # Install pyenv and python 3.10.10
-RUN yum swap openssl-devel openssl11-devel -y
-RUN git clone https://github.com/pyenv/pyenv.git /pyenv
-ENV PYENV_ROOT /pyenv
-RUN /pyenv/bin/pyenv install 3.10.10
-RUN eval "$(/pyenv/bin/pyenv init -)" && /pyenv/bin/pyenv local 3.10.10
+RUN yum swap openssl-devel openssl11-devel -y && \
+    git clone https://github.com/pyenv/pyenv.git /pyenv && \
+    /pyenv/bin/pyenv install 3.10.10 && \
+    eval "$(/pyenv/bin/pyenv init -)" && /pyenv/bin/pyenv local 3.10.10
 
 # Set the environment variables for pyenv
 RUN echo 'export PATH="/pyenv/bin:$PATH"' >> ~/.bash_profile && \
@@ -42,28 +30,17 @@ RUN echo 'export PATH="/pyenv/bin:$PATH"' >> ~/.bash_profile && \
     echo 'export PYENV_ROOT="/pyenv"' >> ~/.bashrc && \
     echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc && \
     echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
-    source ~/.bashrc
-# Export flags for openssl11 and set the temporary directory
-RUN exec "$SHELL" && \
+    source ~/.bashrc && \
+    exec "$SHELL" && \
     export CFLAGS=$(pkg-config --cflags openssl11) && \
     export LDFLAGS=$(pkg-config --libs openssl11) && \
     mkdir -p ~/tmp && \
     export TMPDIR=~/tmp
 
-# Global enable python 3.10.10 and install the variant_workbook_parser
-RUN /pyenv/bin/pyenv global 3.10.10 && \
-    /pyenv/bin/pyenv rehash && \
-    git clone --depth 1 --branch $(git ls-remote --tags --refs --sort="v:refname" https://github.com/eastgenomics/variant_workbook_parser.git | tail -n1 | sed 's/.*\///') \
-    https://github.com/eastgenomics/variant_workbook_parser.git /variant_workbook_parser && \
-    /pyenv/versions/3.10.10/bin/python -m ensurepip && \
-    /pyenv/versions/3.10.10/bin/python -m pip install --upgrade pip && \
-    /pyenv/versions/3.10.10/bin/python -m pip install -r /variant_workbook_parser/requirements.txt
-
-# copy the main.nf file to the container
 COPY . /home/
 
-RUN /pyenv/versions/3.10.10/bin/python -m pip install -r /home/requirements.txt
-
-ENV SLACK_WEBHOOK_TEST=default
-ENV SLACK_WEBHOOK_LOGS=default
-ENV SLACK_WEBHOOK_ALERTS=default
+# Clone the variant_workbook_parser repository and install its dependencies
+RUN git clone --depth 1 --branch $(git ls-remote --tags --refs --sort="v:refname" https://github.com/eastgenomics/variant_workbook_parser.git | tail -n1 | sed 's/.*\///') \
+    https://github.com/eastgenomics/variant_workbook_parser.git /variant_workbook_parser && \
+    /pyenv/versions/3.10.10/bin/python -m pip install -r /variant_workbook_parser/requirements.txt && \
+    /pyenv/versions/3.10.10/bin/python -m pip install -r /home/requirements.txt
