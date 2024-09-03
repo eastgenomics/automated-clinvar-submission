@@ -21,9 +21,12 @@ ENV SLACK_WEBHOOK_LOGS=default
 ENV SLACK_WEBHOOK_ALERTS=default
 
 # Install pyenv and python 3.10.10
-RUN git clone --depth 1 https://github.com/pyenv/pyenv.git /pyenv && \
+RUN curl https://github.com/pyenv/pyenv/archive/refs/tags/v2.4.10.tar.gz -L -o pyenv.tar.gz && \
+    tar -xvf pyenv.tar.gz && \
+    mv pyenv-2.4.10 /pyenv && \
     /pyenv/bin/pyenv install 3.10.10 && \
-    eval "$(/pyenv/bin/pyenv init -)" && /pyenv/bin/pyenv local 3.10.10
+    eval "$(/pyenv/bin/pyenv init -)" && /pyenv/bin/pyenv local 3.10.10 && \
+    rm pyenv.tar.gz
 
 # Set the environment variables for pyenv
 RUN echo 'export PATH="/pyenv/bin:$PATH"' >> ~/.bash_profile && \
