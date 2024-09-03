@@ -13,7 +13,7 @@ import argparse
 import json
 
 logging.basicConfig(
-    filename="/tmp/auto_clinvar_slack_notify.log",
+    filename="/log/monitoring/auto_clinvar_slack_notify.log",
     encoding="utf-8",
     filemode="a",
     format="{asctime} - {levelname} - {message}",
@@ -244,6 +244,7 @@ def coordinate_notifications(parsed_args, outcome):
                 f":black_small_square: {total_parsed} workbooks parsed\n"
                 f":black_small_square: {total_passed} passed\n"
                 f":black_small_square: {total_failed} failed\n"
+                "These workbooks require manual intervention.\n"
             )
             slack_notify_webhook(message, 'fail', SLACK_WEBHOOK_URL)
         elif total_parsed == total_passed:
@@ -252,8 +253,7 @@ def coordinate_notifications(parsed_args, outcome):
                 f"Automated parsing has successfully run.\n"
                 f":black_small_square: {total_parsed} workbooks parsed\n"
                 f":black_small_square: {total_passed} passed\n"
-                f":black_small_square: {total_failed} failed\n"
-                "These workbooks require manual intervention.\n"
+                "All workbooks passed. \n No workbooks require manual intervention.\n"
             )
             slack_notify_webhook(message, 'success', SLACK_WEBHOOK_URL)
         else:
