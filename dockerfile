@@ -5,10 +5,9 @@ FROM nextflow/nextflow:22.10.3
 RUN yum groupinstall -y "Development Tools" && \
     yum install -y \
     bzip2-devel \
-    openssl-devel \
     libffi-devel \
+    openssl11-devel \
     wget \
-    openssl11 \
     make \
     bzip2 \
     git && \
@@ -23,8 +22,7 @@ ENV SLACK_WEBHOOK_LOGS=default
 ENV SLACK_WEBHOOK_ALERTS=default
 
 # Install pyenv and python 3.10.10
-RUN yum swap openssl-devel openssl11-devel -y && \
-    git clone https://github.com/pyenv/pyenv.git /pyenv && \
+RUN git clone --depth 1 https://github.com/pyenv/pyenv.git /pyenv && \
     /pyenv/bin/pyenv install 3.10.10 && \
     eval "$(/pyenv/bin/pyenv init -)" && /pyenv/bin/pyenv local 3.10.10
 
@@ -50,4 +48,5 @@ COPY . /home/
 RUN git clone --depth 1 --branch $(git ls-remote --tags --refs --sort="v:refname" https://github.com/eastgenomics/variant_workbook_parser.git | tail -n1 | sed 's/.*\///') \
     https://github.com/eastgenomics/variant_workbook_parser.git /variant_workbook_parser && \
     /pyenv/versions/3.10.10/bin/python -m pip install -r /variant_workbook_parser/requirements.txt && \
-    /pyenv/versions/3.10.10/bin/python -m pip install -r /home/requirements.txt
+    /pyenv/versions/3.10.10/bin/python -m pip install -r /home/requirements.txt && \
+    rm -rf /var/cache/yum
