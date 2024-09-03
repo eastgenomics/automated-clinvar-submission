@@ -10,6 +10,7 @@
   - [Installation](#installation)
       - [To run nextflow interactively](#to-run-nextflow-interactively)
   - [Pre-requirements](#pre-requirements)
+    - [Example Configuration files](#example-configuration-files)
 
 ## Introduction
 
@@ -57,23 +58,50 @@ List the necessary pre-requirements for the project, including environment token
 - `SLACK_WEBHOOK_LOGS`: webhook url for sending SLACK messages.
 - `SLACK_WEBHOOK_ALERTS`: webhook url for sending SLACK messages.
 
+### Example Configuration files
 Configuration file for nextflow pipeline
 
-```json
+```txt
 
 // nextflow.config
 params {
     dnanexusProject = "project-ID"
-    indir = '/variant_workbook_parser/tests/test_data/CUH/'
-    parsed_file_log = '/test_submission/workbooks_parsed_all_variants.txt'
-    clinvar_file_log = '/test_submission/workbooks_parsed_clinvar_variants.txt'
-    failed_file_log = '/test_submission/workbooks_fail_to_parse.txt'
-    completed_dir = '/test_submission/completed_dir/'
-    failed_dir = '/test_submission/failed_dir/'
-    outdir = '/test_submission/Output/'
-    unusual_sample_name = false
+    indir = "/variant_workbook_parser/tests/test_data/CUH/"
+    parsed_file_log = "/test_submission/workbooks_parsed_all_variants.txt"
+    clinvar_file_log = "/test_submission/workbooks_parsed_clinvar_variants.txt"
+    failed_file_log = "/test_submission/workbooks_fail_to_parse.txt"
+    completed_dir = "/test_submission/completed_dir/"
+    failed_dir = "/test_submission/failed_dir/"
+    outdir = "/test_submission/Output/"
     no_dx_upload = true
-    subfolder = 'csvs'
+    subfolder = "csvs"
+    slack_channel = "egg-test"
     }
 
 ```
+
+`dnanexusProject`: DNAneuxus project for uploading CSVs and logs. Not currently used.
+`indir`: This is the input directory containing all the workbooks.
+`parsed_file_log`: Path to the log file where details of parsed workbooks are recorded.
+`clinvar_file_log`: Path to the log file where details of ClinVar variants to be submitted are recorded.
+`failed_file_log`: Path to the log file where details of workbooks that failed processing are recorded.
+`completed_dir`: Directory where successfully processed workbooks are stored.
+`failed_dir`: Directory where workbooks that failed processing are stored.
+`outdir`: Output directory where the results of the Nextflow pipeline are stored.
+`no_dx_upload`: Flag indicating whether to skip uploading files to DNAnexus.
+`subfolder`: Subfolder within the output directory for organizing CSVs in DNAnexus.
+`slack_channel`: Slack channel where notifications about the pipeline's progress and results are sent.
+
+Environmental variables file for docker.
+``` txt
+DX_PROJECT="project-ABC"
+DX_TOKEN="tk"
+SLACK_WEBHOOK_TEST=https://hooks.slack.com/services/T0XXXXX
+SLACK_WEBHOOK_ALERTS=https://hooks.slack.com/services/T0XXXXX
+```
+
+Configuration ENV variables
+`DX_PROJECT`: Define DNAnexus project - not currently used.
+`DX_TOKEN`: Provides the API authorisation token for uploading CSVs and logs to DNAnexus project.
+`SLACK_WEBHOOK_TEST`: Webhook for sending notifications to slack channel (`egg-test`).
+`SLACK_WEBHOOK_ALERTS`: Webhook for sending notifications to slack channel (`egg-alerts`).
