@@ -1,7 +1,9 @@
 # ignore everything except for the required files to run, stops any erroneous config / output files
 # being bundled in the built image
-!/configurations
-!/tests/.pytest_cache
-!/tests/__pycache__
-!/.pytest_cache
-
+/**
+!/utils
+!/tests
+!/requirements.txt
+!/Dockerfile
+!/main.nf
+!/README.md
