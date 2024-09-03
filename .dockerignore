@@ -3,6 +3,7 @@
 /**
 !/utils
 !/tests
+!/configurations
 !/requirements.txt
 !/Dockerfile
 !/main.nf
