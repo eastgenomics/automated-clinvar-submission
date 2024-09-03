@@ -253,6 +253,7 @@ def coordinate_notifications(parsed_args, outcome):
                 f":black_small_square: {total_parsed} workbooks parsed\n"
                 f":black_small_square: {total_passed} passed\n"
                 f":black_small_square: {total_failed} failed\n"
+                "These workbooks require manual intervention.\n"
             )
             slack_notify_webhook(message, 'success', SLACK_WEBHOOK_URL)
         else:

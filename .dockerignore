@@ -1,0 +1,10 @@
+# ignore everything except for the required files to run, stops any erroneous config / output files
+# being bundled in the built image
+/**
+!/utils
+!/tests
+!/configurations
+!/requirements.txt
+!/Dockerfile
+!/main.nf
+!/README.md
