@@ -12,7 +12,6 @@ RUN yum groupinstall -y "Development Tools" && \
     bzip2 \
     git && \
     yum -y clean all && \
-    rm -fr /var/cache && \
     rm -rf /var/cache/yum
 
 # Set the environment variables
