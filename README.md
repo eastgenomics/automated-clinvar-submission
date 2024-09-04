@@ -9,6 +9,7 @@
     - [Future features](#future-features)
   - [Installation](#installation)
       - [To run nextflow interactively](#to-run-nextflow-interactively)
+    - [Logging](#logging)
   - [Pre-requirements](#pre-requirements)
     - [Example Configuration files](#example-configuration-files)
 
@@ -50,6 +51,10 @@ Run docker with:
 `docker run -it automated_clinvar_submission`
 `nextflow run main.nf -c /path/to/config.txt`
 
+
+### Logging
+
+Log file (auto_clinvar_slack_notify.log) will be stored in appdata/log/automated_clinvar_submission/auto_clinvar_slack_notify.log
 
 ## Pre-requirements
 ### Example Configuration files
